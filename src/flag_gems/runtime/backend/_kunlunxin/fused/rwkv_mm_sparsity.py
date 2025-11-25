@@ -2,6 +2,7 @@ import torch
 import triton
 import triton.language as tl
 
+
 @triton.jit
 def rwkv_mm_sparsity_kernel(
     k_ptr,
@@ -9,7 +10,7 @@ def rwkv_mm_sparsity_kernel(
     output_ptr,
     v_cols: tl.constexpr,
     k_size: tl.constexpr,
-    BLOCK_SIZE_N: tl.constexpr, 
+    BLOCK_SIZE_N: tl.constexpr,
     BLOCK_SIZE_K: tl.constexpr,
 ):
     """
@@ -21,7 +22,7 @@ def rwkv_mm_sparsity_kernel(
     offs_n = pid_n * BLOCK_SIZE_N + tl.arange(0, BLOCK_SIZE_N)
     mask_n = offs_n < v_cols
     accumulator = tl.zeros((1, BLOCK_SIZE_N), dtype=tl.float32)
-    
+
     for k_block_idx in range(0, tl.cdiv(k_size, BLOCK_SIZE_K)):
         offs_k = k_block_idx * BLOCK_SIZE_K + tl.arange(0, BLOCK_SIZE_K)
         mask_k = offs_k < k_size
@@ -49,7 +50,7 @@ def rwkv_mm_sparsity(k: torch.Tensor, v: torch.Tensor):
 
     blk_size = triton.next_power_of_2(512)
     k_size = triton.next_power_of_2(k.size(0))
-    block_size = triton.next_power_of_2(64) if 64 < k_size else k_size  
+    block_size = triton.next_power_of_2(64) if 64 < k_size else k_size
     grid = (triton.cdiv(v_cols, block_size),)
 
     rwkv_mm_sparsity_kernel[grid](
