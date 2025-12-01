@@ -136,6 +136,7 @@ def addcdiv_input_fn(shape, cur_dtype, device):
 )
 def test_generic_pointwise_benchmark(op_name, torch_op, input_fn, dtypes):
     if vendor_name == "kunlunxin" and SkipVersion("torch", "<2.5"):
+        # torch aten 2.0 supports threshold but not for float16
         if op_name in ["threshold"]:
             pytest.skip("TODOFIX")
     bench = GenericBenchmark(
